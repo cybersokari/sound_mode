@@ -14,6 +14,7 @@ public class SoundEventHandler implements EventChannel.StreamHandler {
     SoundEventHandler(Context context) {
         this.context = context;
     }
+
     Context context;
     final IntentFilter filter = new IntentFilter(
             AudioManager.RINGER_MODE_CHANGED_ACTION);
@@ -27,11 +28,12 @@ public class SoundEventHandler implements EventChannel.StreamHandler {
                 if (Objects.equals(intent.getAction(), AudioManager.RINGER_MODE_CHANGED_ACTION)) {
                     switch (intent.getIntExtra(AudioManager.EXTRA_RINGER_MODE, -1)) {
                         case AudioManager.RINGER_MODE_VIBRATE:
+                            eventSink.success("vibration");
                         case AudioManager.RINGER_MODE_SILENT:
-                            eventSink.success(false);
+                            eventSink.success("silent");
                             break;
                         default:
-                            eventSink.success(true);
+                            eventSink.success("normal");
                             break;
                     }
 
@@ -43,7 +45,7 @@ public class SoundEventHandler implements EventChannel.StreamHandler {
 
     @Override
     public void onCancel(Object o) {
-        if(receiver != null){
+        if (receiver != null) {
             context.unregisterReceiver(receiver);
         }
     }
