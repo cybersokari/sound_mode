@@ -1,7 +1,10 @@
 package com.tryingoutsomething.soundmode.sound_mode;
 
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 
 import androidx.annotation.NonNull;
@@ -11,6 +14,7 @@ import com.tryingoutsomething.soundmode.sound_mode.services.impl.AudioManagerSer
 import com.tryingoutsomething.soundmode.sound_mode.services.impl.IntentManagerServiceImpl;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -18,6 +22,8 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
+
+import java.util.Objects;
 
 /**
  * SoundModePlugin
@@ -33,7 +39,7 @@ public class SoundModePlugin implements FlutterPlugin, MethodCallHandler {
     private Context context;
 
     @Override
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+    public void onAttachedToEngine(@NonNull final FlutterPluginBinding flutterPluginBinding) {
         context = flutterPluginBinding.getApplicationContext();
 
         AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
@@ -44,6 +50,11 @@ public class SoundModePlugin implements FlutterPlugin, MethodCallHandler {
 
         channel = new MethodChannel(flutterPluginBinding.getFlutterEngine().getDartExecutor(), "method.channel.audio");
         channel.setMethodCallHandler(this);
+
+        // Event channel to listen to ringer mode changes
+        EventChannel _stream = new EventChannel(flutterPluginBinding.getBinaryMessenger(), "method.channel.audio.event");
+
+        _stream.setStreamHandler(new SoundEventHandler(context));
     }
 
     // This static function is optional and equivalent to onAttachedToEngine. It supports the old

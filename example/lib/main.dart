@@ -18,12 +18,30 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   RingerModeStatus _soundMode = RingerModeStatus.unknown;
   String? _permissionStatus;
+  EventChannel _stream = EventChannel('method.channel.audio.event');
+  StreamSubscription<dynamic>? subscription;
 
   @override
   void initState() {
     super.initState();
     _getCurrentSoundMode();
     _getPermissionStatus();
+
+    subscription = _stream.receiveBroadcastStream().listen((onData) {
+      print("Silent mode is now ${onData ? 'Off' : 'On'}");
+      if (onData != null && onData is bool) {
+        setState(() {
+          _soundMode =
+              onData ? RingerModeStatus.normal : RingerModeStatus.silent;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _getCurrentSoundMode() async {
